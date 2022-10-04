@@ -1,0 +1,178 @@
+# ORM(Object Relational Mapping) 이란?
+
+- 어플리케이션의 객체와 관계형 데이터베이스의 데이터를 자동으로 매핑해주는 것을 의미
+  - Java의 데이터 클래스와 관계형 데이터베이스의 테이블을 매핑
+
+- 객체지향 프로그래밍과 관계형 데이터베이스의 차이로 발생하는 제약사항을 해결해주는 역할을 수행
+- 대표적으로 `JPA, Hibernate` 등이 있다.
+
+### ORM의 장점
+
+- SQL 쿼리가 아닌 직관적인 코드로 데이터를 조작할 수 있다.
+  - 개발자가 보다 비즈니스 로직에 집중할 수 있다.
+- 재사용 및 유지보수가 편리하다.
+  - ORM은 독립적으로 작성되어 있어 재사용이 가능하다.
+  - 매핑정보를 명확하게 설계하기 때문에 따로 데이터베이스를 볼 필요가 없다.
+- DBMS에 대한 종속성이 줄어든다.
+  - DBMS를 교체하는 작업을 비교적 적은 리스크로 수행 가능하다.
+
+### ORM의 단점
+
+- 복잡성이 커질 경우 ORM만으로 구현하기 어렵다.
+  - 직접 쿼리를 구현하지 않아 복잡한 설계가 어렵다.
+- 잘못 구현할 경우 속도 저하가 발생한다.
+- 대형 쿼리는 별도의 튜닝이 필요할 수 있다.
+
+# JPA (Java Persistance API) 란?
+
+- JPA는 Java Persistance API의 줄임말이며, ORM과 관련된 인터페이스의 모음이다.
+- Java 진영에서 표준 ORM으로 채택되어 있다.
+- ORM이 큰 개념이라고 하면 JPA는 더 구체화 시킨 스펙을 포함하고 있다.
+
+### Hibernate
+
+- ORM Framework 중 하나
+- JPA의 실제 구현체 중 하나이며, 현재 JPA 구현체 중 가장 많이 사용되고 있다.
+
+### @Entity
+
+- Entity는 데이터 베이스 테이블에 대응하는 하나의 클래스이다. -> `데이터 베이스의 데이터`
+- @Entity 어노테이션이 붙은 클래스는 JPA가 관리하는 것으로, 엔티티라고 불린다.
+
+1. 속성
+   1. Name : JPA에서 사용할 엔티티 이름을 지정.
+   2. 보통 기본 값인 클래스 이름을 사용
+2. 주의사항
+   1. 기본 생성자를 반드시 생성해야 한다. -> JPA가 엔티티 객체 생성 시 기본 생성자를 사용
+   2. final 클래스, enum, interface, inner class에는 사용할 수 없다.
+   3. 저장할 필드에 final 사용불가
+   4. @Entity 어노테이션을 사용하면 아래의 어노테이션도 같이 사용해 줘야 한다.
+
+```java
+@NoArgsConstructor
+@AllArgsConstructor
+```
+
+### @table
+
+- 엔티티와 매핑할 테이블을 지정
+- 생략 시 매핑한 엔티티 이름을 테이블 이름으로 사용
+
+1. 속성
+   1. Name : 매핑할 테이블 이름 (default: 엔티티 이름 사용)
+   2. Catalog : catalog 기능이 있는 DB에서 catalog를 매핑 (default : DB 명)
+   3. Schema : shema 기능이 있는 DB에서 schema를 매핑
+   4. UniqueConstraints : DDL 생성 시 유니크 제약조건을 만듦, 스키마 자동 생성 기능을 사용해서 DDL을 만들 때만 사용
+
+### 데이터베이스 스키마 자동 생성
+
+- JPA는 데이터베이스 스키마를 자동으로 생성하는 기능을 지원
+- 클래스의 매핑 정보와 데이터베이스 방언을 사용하여 데이터베이스 스키마 생성
+- 애플리케이션 실행 시점에 데이터베이스 테이블을 자동으로 생성
+
+### 기본키 매핑
+
+- 연속성 Context는 엔티티를 식별자 값으로 구분하므로 엔티티를 연속 상태로 만들기 위해 식별자 값이 반드시 필요
+
+**@Id**
+
+- DB 테이블의 Primary Key 역할을 하는 것을 나타낸다.
+
+#### @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+- 기본 키를 자동 생성해주는 어노테이션
+- 선택적 속성 : generator, strategy
+
+- generator : SequenceGenerator나 TableGenerator 어노테이션에서 명시된 주키 생성자를 재사용할 때 쓰인다. 디폴트 값은 공백문자이다.
+- strategy: persistence provider가 엔티티의 주키를 생성할 때 사용해야 하는 주키 생성 전략 을 의미
+
+1. AUTO : (persistence provider가) 특정 DB에 맞게 자동 선택
+2. IDENTITY : DB의 identity 컬럼을 이용
+3. SEQUENCE : DB의 시퀀스 컬럼을 이용
+4. TABLE : 유일성이 보장된 데이터베이스 테이블을 이용
+
+### @Column
+
+- 객체 필드를 테이블 컬럼에 매핑
+- 속성 중 name, nullable이 주로 사용되고 나머지는 잘 사용되지 않는다.
+
+```java
+@Column(nullable = false)
+private Strin data;
+ 
+@Column(unique = true)
+private Strin data;
+ 
+@Column(columnDefinition = "varchar(100) default 'EMPTY'")
+private Strin data;
+ 
+@Column(length = 400)
+private Strin data;
+ 
+@Column(precision = 10, scale = 2)
+private BigDecimal data;
+```
+
+1. name : 필드와 매핑할 테이블 컬럼 이름 (default : 객체의 필드 이름)
+2. nullable (DDL) : null 값의 허용 여부 설정, false 설정 시 not null (default : true)
+   1. @column 사용 시 nullable = false로 설정하는 것이 안전하다.
+3. unique (DDL) : @Table의 uniqueConstraints와 같지만 한 컬럼에 간단히 유니크 제약조건을 적용
+4. columnDefinition (DDL) : 데이터베이스 컬럼 정보를 직접 줄 수 있음, (Default : 필드의 자바 타입과 방언 정보를 사용해 적절한 컬럼 타입을 생성)
+5. length (DDL) : 문자 길이 제약조건, String 타입에만 사용 (default : 255)
+6. percision, scale (DDL) : BigDecimal, BigInteger 타입에서 사용, 아주 큰 숫자나 정밀한 소수를 다룰 때만 사용 (Default : percision = 19, scale = 2)
+
+### @Enumerated
+
+- ORDINAL : Enum의 선언된 순서를 Integer 값으로 변환하여 DB 컬럼에 값을 넣어준다. 즉 Enum 내부에 선언된 상수들의 순서가 매우 중요하며 DB 컬럼은 numeric 타입이다.
+- STRING : Enum의 선언된 상수의 이름을 String 클래스 타입으로 변환하여 DB에 넣어준다. 즉 DB 클래스 타입은 String 이다.
+
+### @CreateDate, @LastModifiedDate
+
+데이터를 저장할 때 `생성된 시간 정보`와 `수정된 시간 정보`를 자동으로 저장하기 위해 사용된다.
+
+```java
+@EnableJpaAuditing
+```
+
+- @CreateDate, @LastModifiedDate 를 사용하기 위해서는 application 클래스에 위에 코드가 추가 되어야 한다.
+
+```java
+@Entity
+@EntityListeners(AuditingEntityListener.class)
+```
+
+- @CreateDate, @LastModifiedDate 를 사용하기 위해서는 해당 클래스 위에 코드가 추가 되어야 한다.
+
+### JpaRepository
+
+JpaRepository는 인터페이스이다. 인터페이스에 미리 검색 메서드를 정의 해두는 것으로, 메서드를 호출하는 것만으로 스마트한 데이터 검색을 할 수 있게 되는 것이다.
+
+```java
+package com.devkuma.spring.db;
+ 
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+ 
+@Repository 
+public interface SampleEntityRepository
+    extends JpaRepository <SampleEntity, Long> {
+}
+```
+
+JpaRepository 인터페이스를 사용하려면 @Repository 어노테이션을 정의해 주어야 한다.
+
+```java
+public interface 이름 extends JpaRepository <엔티티 ID 유형>
+```
+
+`<>`안에는 엔티티 클래스 이름과 ID 데이터 타입을 정의해 주면 된다.
+
+#### JpaRepository 의 주요 메서드
+
+- save(S) : 새로운 엔티티는 저장하고 이미 있는 엔티티 수정
+  - 식별자 값이 없으면 em.persist(), 있으면 em.merge()를 호출
+
+- delete(T) : 엔티티 하나를 삭제 (내부에서 em.remove() 를 호출)
+- findOne(ID) : 엔티티 하나를 조회 (내부에서 em.find()를 호출)
+- getOne(ID) : 엔티티를 프록시로 조회 (내부에서 em.Reference()를 호출)
+- findAll(. .) : 모든 엔티티를 조회 (sort 또는 pageble 조건을 파라미터로 제공)
